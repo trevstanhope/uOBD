@@ -20,35 +20,37 @@ CONFIG = {
     "MONGO_DB" : "%Y%m",
     "CHERRYPY_ADDR" : "127.0.0.1",
     "CHERRYPY_PORT" : 8080,
-    "LOG_FILE" : "%Y%m%d"
+    "LOG_FILE" : "%Y%m%d",
+    "DATE_FORMAT" : "%d/%b/%Y:%H:%M:%S",
+    "LOG_FORMAT" : "[%s] %s %s"
 }
-
-## Pretty Print
-def pretty_print(task, msg):
-    date = datetime.strftime(datetime.now(), '%d/%b/%Y:%H:%M:%S')
-    print('[%s] %s %s' % (date, task, msg))
 
 # Classes
 class WatchDog:
     def __init__(self, config):
         self.config = config
-        self.mongo_client = pymongo.MongoClient(config['MONGO_ADDR'], config['MONGO_PORT'])        
+        self.init_db()
         self.init_logging()
 
     def init_db(self):
         try:
             self.mongo_client = pymongo.MongoClient(config['MONGO_ADDR'], config['MONGO_PORT'])        
-            self.pretty_print('DB', 'Initializing DB')
+            self.add_log_entry('DB', 'Initializing DB')
         except Exception as error:
-            self.pretty_print('DB', str(error))
+            self.add_log_entry('DB', str(error))
 
     def init_logging(self):
         try:
-            self.pretty_print('LOG', 'Initializing Log')
-            self.log_path = '%s/%s' % (self.LOG_DIR, datetime.strftime(datetime.now(), self.LOG_FILE))
+            self.add_log_entry('LOG', 'Initializing Log')
+            self.log_path = '%s/%s' % (self.config['LOG_DIR'], datetime.strftime(datetime.now(), self.config['LOG_FILE']))
             logging.basicConfig(filename=self.log_path, level=logging.DEBUG)
         except Exception as error:
-            self.pretty_print('LOG', str(error))
+            self.add_log_entry('LOG', str(error))
+    
+    ## Pretty Print
+    def add_log_entry(self, task, msg):
+        date = datetime.strftime(datetime.now(), '%d/%b/%Y:%H:%M:%S')
+        print('[%s] %s %s' % (date, task, msg))
 
     """
     Handler Functions
